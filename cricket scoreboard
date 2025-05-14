@@ -1,0 +1,79 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+int runs = 0;
+int wickets = 0;
+int overs = 0;
+int balls = 0;
+
+const byte ROWS = 4;
+const byte COLS = 4;
+char keys[ROWS][COLS] = {
+  {'1','2','3','A'},
+  {'4','5','6','B'},
+  {'7','8','9','C'},
+  {'*','0','#','D'}
+};
+
+byte rowPins[ROWS] = {9, 8, 7, 6};
+byte colPins[COLS] = {5, 4, 3, 2};
+
+Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0, 0);
+  lcd.print(" Cricket Scoreboard ");
+  updateDisplay();
+}
+
+void loop() {
+  char key = keypad.getKey();
+  if (key) {
+    if (key >= '0' && key <= '6') {
+      runs += (key - '0');
+      nextBall();
+    } else if (key == 'A') {  
+      if (wickets < 10) wickets++;
+      nextBall();
+    } else if (key == 'B') {
+      nextBall();
+    } else if (key == '*') {
+      runs = 0;
+      wickets = 0;
+      overs = 0;
+      balls = 0;
+    }
+    updateDisplay();
+    delay(200); 
+  }
+}
+
+void nextBall() {
+  balls++;
+  if (balls == 6) {
+    balls = 0;
+    overs++;
+  }
+}
+
+void updateDisplay() {
+  lcd.setCursor(0, 1);
+  lcd.print("Runs: ");
+  lcd.print(runs);
+  lcd.print("   Wkts: ");
+  lcd.print(wickets);
+  
+  lcd.setCursor(0, 2);
+  lcd.print("Overs: ");
+  lcd.print(overs);
+  lcd.print(".");
+  lcd.print(balls);
+  
+  lcd.setCursor(0, 3);
+  lcd.print("[0-6]=Run A=W B=Ball");
+}
